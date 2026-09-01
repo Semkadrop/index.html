@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>SEMKA DROP</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#07070b;color:#fff;font-family:Arial,sans-serif;min-height:100vh;display:flex;justify-content:center}
+.app{width:100%;max-width:520px;padding:18px 12px 30px}
+.login{position:fixed;inset:0;background:#07070b;display:flex;align-items:center;justify-content:center;padding:20px;z-index:20}
+.login-box{width:100%;max-width:390px;background:#121018;border:1px solid #30283a;border-radius:20px;padding:24px;box-shadow:0 20px 60px #000}
+.login-title{text-align:center;font-size:28px;font-weight:900;margin-bottom:8px}.login-title span{color:#a855f7}
+.login-sub{text-align:center;color:#9993a2;font-size:13px;margin-bottom:20px}
+input{width:100%;padding:15px;border-radius:13px;border:1px solid #38313f;background:#09090d;color:#fff;font-size:16px;outline:none}
+input:focus{border-color:#a855f7}
+.login button{margin-top:12px}
+.error{display:none;color:#f87171;text-align:center;font-size:12px;margin-top:9px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.logo{font-weight:900;font-size:28px;letter-spacing:1px}.logo span{color:#a855f7}
+.player{background:#15131d;border:1px solid #30253e;border-radius:14px;padding:8px 10px;font-size:12px;font-weight:800}
+.balance{margin-top:4px;color:#d8b4fe;font-size:13px}
+.case{background:linear-gradient(180deg,#15121d,#0d0c12);border:1px solid #29212f;border-radius:20px;padding:16px;box-shadow:0 15px 50px #000}
+.title{text-align:center;font-size:20px;font-weight:900;margin:2px 0 14px}
+.roller-wrap{position:relative;overflow:hidden;border-radius:15px;background:#08080c;border:1px solid #27232d;height:150px}
+.roller-wrap:before,.roller-wrap:after{content:"";position:absolute;z-index:3;top:0;height:100%;width:70px;pointer-events:none}
+.roller-wrap:before{left:0;background:linear-gradient(90deg,#08080c,transparent)}
+.roller-wrap:after{right:0;background:linear-gradient(-90deg,#08080c,transparent)}
+.marker{position:absolute;z-index:5;left:50%;top:0;transform:translateX(-50%);height:100%;width:3px;background:#fff;box-shadow:0 0 15px #fff}
+.marker:before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);border-left:9px solid transparent;border-right:9px solid transparent;border-top:12px solid #fff}
+.track{height:100%;display:flex;align-items:center;gap:10px;padding-left:calc(50% - 58px);will-change:transform}
+.item{flex:0 0 116px;height:116px;border-radius:14px;border:2px solid #333;background:#15151b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px}
+.seed-img{width:64px;height:64px;object-fit:cover;border-radius:10px}
+.name{font-size:12px;font-weight:900;text-align:center}.rarity{font-size:10px;font-weight:900;text-transform:uppercase}
+.common{border-color:#777}.common .rarity{color:#aaa}
+.uncommon{border-color:#22c55e}.uncommon .rarity{color:#4ade80}
+.rare{border-color:#3b82f6}.rare .rarity{color:#60a5fa}
+.epic{border-color:#a855f7;box-shadow:0 0 12px #7e22ce55}.epic .rarity{color:#c084fc}
+.legendary{border-color:#f59e0b;box-shadow:0 0 16px #f59e0b55}.legendary .rarity{color:#fbbf24}
+button{width:100%;margin-top:18px;padding:15px;border:0;border-radius:14px;background:linear-gradient(90deg,#7e22ce,#a855f7);color:white;font-size:17px;font-weight:900;cursor:pointer;box-shadow:0 8px 25px #7e22ce44}
+button:disabled{opacity:.5}.cost{text-align:center;margin-top:9px;color:#9ca3af;font-size:13px}
+.chances{margin-top:14px;padding:12px;border-radius:14px;background:#0d0c12;border:1px solid #28222f}
+.chances-title{font-size:13px;font-weight:900;margin-bottom:8px}.chance-row{display:flex;justify-content:space-between;font-size:12px;margin:5px 0}
+.result{display:none;text-align:center;margin-top:18px;padding:16px;border-radius:16px;background:#121018;border:1px solid #2e2638}
+.result.show{display:block;animation:pop .35s ease}.result-img{width:100px;height:100px;object-fit:cover;border-radius:14px}.result h2{margin:5px 0}
+.price{font-size:20px;font-weight:900;color:#fbbf24}.hint{color:#8d8796;font-size:12px;margin-top:10px}
+.inventory{margin-top:18px;background:#121018;border:1px solid #2e2638;border-radius:18px;padding:14px}
+.inventory-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.inventory-title{font-size:18px;font-weight:900}.inventory-count{font-size:12px;color:#a855f7;font-weight:900}
+.inventory-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.inv-item{min-height:105px;background:#0d0c12;border:1px solid #29212f;border-radius:14px;padding:10px;display:flex;align-items:center;gap:10px}
+.inv-item img{width:58px;height:58px;object-fit:cover;border-radius:10px;flex:0 0 58px}
+.inv-info{min-width:0}.inv-name{font-size:11px;font-weight:900;line-height:1.2}.inv-rarity{font-size:9px;margin-top:4px;font-weight:900;text-transform:uppercase}.inv-qty{font-size:13px;margin-top:6px;color:#d8b4fe;font-weight:900}
+.inv-sell{width:auto;margin:7px 0 0;padding:7px 10px;border-radius:9px;font-size:11px;box-shadow:none;background:#241b2d}
+.inv-sell:hover{background:#352442}
+.inv-info{flex:1}
+.empty-inventory{grid-column:1/-1;text-align:center;color:#77717f;font-size:12px;padding:18px 5px}
+.logout{background:#211b28;margin-top:12px;font-size:13px;padding:10px}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.admin-panel{display:none;margin-top:18px;background:#121018;border:1px solid #3b2b4d;border-radius:18px;padding:14px}.admin-panel.show{display:block}.admin-title{font-size:18px;font-weight:900;margin-bottom:12px}.admin-row{display:flex;gap:8px;margin-bottom:8px}.admin-row input{flex:1}.admin-btn{margin-top:0;font-size:13px;padding:11px}.admin-msg{font-size:12px;color:#a855f7;margin-top:8px;min-height:16px} 
+.fortune{margin-top:18px;background:#121018;border:1px solid #3b2b4d;border-radius:18px;padding:16px;text-align:center;overflow:hidden}.fortune-title{font-size:20px;font-weight:900}.fortune-text{color:#9993a2;font-size:12px;margin-top:6px}.wheel-box{position:relative;width:300px;height:300px;margin:16px auto 8px}.wheel-pointer{position:absolute;z-index:5;top:-2px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:13px solid transparent;border-right:13px solid transparent;border-top:28px solid #fbbf24;filter:drop-shadow(0 0 7px #f59e0b)}.wheel{width:100%;height:100%;border-radius:50%;border:8px solid #7e22ce;box-shadow:0 0 25px #7e22ce88,inset 0 0 20px #000;position:relative;overflow:hidden;background:conic-gradient(#f59e0b 0deg 45deg,#ef4444 45deg 90deg,#a855f7 90deg 135deg,#3b82f6 135deg 180deg,#06b6d4 180deg 225deg,#22c55e 225deg 270deg,#f97316 270deg 315deg,#eab308 315deg 360deg);transition:transform 5s cubic-bezier(.12,.75,.12,1)}.wheel-label{position:absolute;left:50%;top:50%;width:50%;height:50%;transform-origin:0 0;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;text-shadow:0 2px 4px #000;pointer-events:none}.wl1{transform:rotate(22.5deg) translateY(-50%)}.wl2{transform:rotate(67.5deg) translateY(-50%)}.wl3{transform:rotate(112.5deg) translateY(-50%)}.wl4{transform:rotate(157.5deg) translateY(-50%)}.wl5{transform:rotate(202.5deg) translateY(-50%)}.wl6{transform:rotate(247.5deg) translateY(-50%)}.wl7{transform:rotate(292.5deg) translateY(-50%)}.wl8{transform:rotate(337.5deg) translateY(-50%)}.wheel-center{position:absolute;z-index:4;left:50%;top:50%;transform:translate(-50%,-50%);width:62px;height:62px;border-radius:50%;background:#17121f;border:4px solid #a855f7;display:flex;align-items:center;justify-content:center;font-size:25px;box-shadow:0 0 15px #000}.fortune button{margin-top:10px}.fortune-cooldown{color:#fbbf24;font-size:12px;margin-top:8px;min-height:15px}.fortune-win{font-size:18px;font-weight:900;color:#fbbf24;min-height:24px;margin-top:8px}.gold-icon{display:inline-flex;align-items:center;justify-content:center;width:1.15em;height:1.15em;margin-right:.15em;vertical-align:-.15em;border-radius:50%;font-size:.8em;line-height:1;background:radial-gradient(circle at 35% 30%,#fff3a3 0 12%,#ffd84d 25%,#f59e0b 65%,#b45309 100%);border:1px solid #ffe27a;box-shadow:0 0 5px #f59e0b88;color:#7c2d12;font-weight:900}
+
+.console-toggle{display:none;width:auto;margin-top:12px;padding:10px 14px;font-size:13px;background:#211b28;box-shadow:none}
+.console-toggle.show{display:block}
+.console-panel{display:none;margin-top:12px;background:#0b0a0f;border:1px solid #3b2b4d;border-radius:18px;padding:14px;box-shadow:0 15px 45px #000}
+.console-panel.show{display:block}
+.console-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.console-title{font-size:17px;font-weight:900}
+.console-status{font-size:10px;color:#4ade80;font-weight:900}
+.console-output{height:220px;overflow:auto;background:#050509;border:1px solid #29232f;border-radius:12px;padding:10px;font:12px/1.5 monospace;white-space:pre-wrap}
+.console-line{margin:2px 0}
+.console-line.cmd{color:#c084fc}
+.console-line.ok{color:#86efac}
+.console-line.err{color:#fca5a5}
+.console-input-row{display:flex;gap:8px;margin-top:8px}
+.console-input{flex:1;font-family:monospace}
+.console-send{width:auto;margin:0;padding:12px 15px;font-size:13px}
+.console-help{margin-top:8px;color:#77717f;font-size:10px}
+
+</style>
+</head>
+<body>
+
+<div class="login" id="login">
+  <div class="login-box">
+    <div class="login-title">SEMKA <span>DROP</span></div>
+    <div class="login-sub">Введите свой никнейм, чтобы начать</div>
+    <input id="nickname" maxlength="20" placeholder="Например: Player123" autocomplete="off">
+    <button id="loginBtn">ВОЙТИ</button>
+    <div class="error" id="loginError">Введите никнейм от 2 до 20 символов</div>
+  </div>
+</div>
+
+<div class="app">
+<div class="top">
+  <div class="logo">SEMKA <span>DROP</span></div>
+  <div class="player">👤 <span id="playerName">Player</span><div class="balance"><span class="gold-icon">G</span><span id="balance">500</span> GOLD</div></div>
+</div>
+
+<div class="case">
+<div class="title">ОТКРЫТИЕ КЕЙСА</div>
+<div class="roller-wrap"><div class="marker"></div><div class="track" id="track"></div></div>
+<button id="spin">КРУТИТЬ — <span class="gold-icon">G</span>500 GOLD</button>
+<div class="cost">Лента → замедление → приз в центре</div>
+
+<div class="chances">
+<div class="chances-title">ШАНСЫ ВЫПАДЕНИЯ</div>
+<div class="chance-row"><span>⚪ Обычная</span><b>64%</b></div>
+<div class="chance-row"><span>🟢 Необычная</span><b>25%</b></div>
+<div class="chance-row"><span>🔵 Редкая</span><b>7%</b></div>
+<div class="chance-row"><span>🟣 Эпическая</span><b>3%</b></div>
+<div class="chance-row"><span>🟡 Легендарная</span><b>1%</b></div>
+</div>
+
+<div class="result" id="result">
+<div id="resultVisual"></div>
+<h2 id="resultName">Семка</h2>
+<div id="resultRarity">ОБЫЧНАЯ</div>
+<div class="price"><span class="gold-icon">G</span><span id="resultPrice">0</span> GOLD</div>
+<div class="hint">Приз выпал из SEMKA DROP</div>
+</div>
+
+
+<div class="fortune">
+  <div class="fortune-title">🎡 КОЛЕСО ФОРТУНЫ</div>
+  <div class="fortune-text">Крути колесо и получай случайную награду раз в 24 часа</div>
+  <div class="wheel-box">
+    <div class="wheel-pointer"></div>
+    <div class="wheel" id="fortuneWheel">
+      <div class="wheel-label wl1">5000</div><div class="wheel-label wl2">2500</div>
+      <div class="wheel-label wl3">1500</div><div class="wheel-label wl4">1000</div>
+      <div class="wheel-label wl5">750</div><div class="wheel-label wl6">500</div>
+      <div class="wheel-label wl7">250</div><div class="wheel-label wl8">100</div>
+      <div class="wheel-center">🌻</div>
+    </div>
+  </div>
+  <button id="fortuneBtn">КРУТИТЬ КОЛЕСО</button>
+  <div class="fortune-win" id="fortuneWin"></div>
+  <div class="fortune-cooldown" id="fortuneCooldown"></div>
+</div>
+
+<div class="inventory" id="inventory">
+<div class="inventory-head">
+  <div class="inventory-title">ИНВЕНТАРЬ</div>
+  <div class="inventory-count" id="inventoryCount">0 предметов</div>
+</div>
+<div class="inventory-grid" id="inventoryGrid"></div>
+</div>
+
+<div class="admin-panel" id="adminPanel"><div class="admin-title">🛠️ SEMKA ADMIN</div><div class="admin-row"><input id="adminTarget" maxlength="20" placeholder="Ник игрока"><input id="adminAmount" type="number" min="0" placeholder="Голда"></div><div class="admin-row"><button class="admin-btn" id="addGold">ДОБАВИТЬ GOLD</button><button class="admin-btn" id="setGold">УСТАНОВИТЬ GOLD</button></div><div class="admin-row"><button class="admin-btn" id="banUser">🚫 БАН</button><button class="admin-btn" id="unbanUser">✅ РАЗБАН</button></div><div class="admin-msg" id="adminMsg"></div></div>
+<button class="console-toggle" id="consoleToggle">⌨️ ОТКРЫТЬ КОНСОЛЬ</button>
+<div class="console-panel" id="consolePanel">
+  <div class="console-head">
+    <div class="console-title">⌘ SEMKA CONSOLE</div>
+    <div class="console-status">ADMIN</div>
+  </div>
+  <div class="console-output" id="consoleOutput"></div>
+  <div class="console-input-row">
+    <input class="console-input" id="consoleInput" autocomplete="off" spellcheck="false"
+           placeholder="help / givegold Nick 1000 / ban Nick">
+    <button class="console-send" id="consoleSend">ВЫПОЛНИТЬ</button>
+  </div>
+  <div class="console-help">Команды: help, gold, givegold &lt;ник&gt; &lt;сумма&gt;, setgold &lt;ник&gt; &lt;сумма&gt;, ban &lt;ник&gt;, unban &lt;ник&gt;, bans, clear</div>
+</div>
+
+<button class="logout" id="logout">СМЕНИТЬ НИКНЕЙМ</button>
+</div>
+</div>
+
+<script>
+const prizes=[
+{name:"Обычная семка",rarity:"Обычная",cls:"common",price:100,image:"semki_2(1).png"},
+{name:"Белая семка",rarity:"Необычная",cls:"uncommon",price:350,image:"semki_5(2).png"},
+{name:"Золотистая семка",rarity:"Редкая",cls:"rare",price:750,image:"semki_1(3).png"},
+{name:"Тёмная семка",rarity:"Эпическая",cls:"epic",price:2500,image:"semki_4.png"},
+{name:"Полосатая семка",rarity:"Эпическая",cls:"epic",price:4200,image:"semki_3(1).png"},
+{name:"Золотая семка",rarity:"Легендарная",cls:"legendary",price:10000,image:"semki_1(3).png"},
+{name:"Неоновая семка",rarity:"Легендарная",cls:"legendary",price:25000,image:"semki_3(1).png"}
+];
+
+const OWNER="Semkadrop";
+const ADMIN_PASSWORD="SemkaAdmin2026";
+const ADMIN_GOLD_USERS={"fernando12ez":1000,"mrbarsik":1000};
+let playerName=localStorage.getItem("semka_drop_player");
+let balance=500,busy=false;
+let inventory={};
+
+const login=document.getElementById("login");
+const nickname=document.getElementById("nickname");
+const loginBtn=document.getElementById("loginBtn");
+const loginError=document.getElementById("loginError");
+const playerNameEl=document.getElementById("playerName");
+const balanceEl=document.getElementById("balance");
+const track=document.getElementById("track");
+const result=document.getElementById("result");
+const btn=document.getElementById("spin");
+const inventoryGrid=document.getElementById("inventoryGrid");
+const inventoryCount=document.getElementById("inventoryCount");
+
+function key(){return "semka_balance_"+playerName.toLowerCase();}
+
+function enter(name){
+ name=name.trim();
+ if(name.length<2||name.length>20){
+   loginError.style.display="block";
+   return;
+ }
+ loginError.style.display="none";
+ playerName=name;
+ localStorage.setItem("semka_drop_player",playerName);
+
+ const saved=localStorage.getItem(key());
+ if(saved!==null){
+   balance=Number(saved);
+ }else{
+   balance=playerName.toLowerCase()===OWNER.toLowerCase()?1000000000:500;
+   localStorage.setItem(key(),String(balance));
+ }
+
+ playerNameEl.textContent=playerName;
+ balanceEl.textContent=balance.toLocaleString("ru-RU");
+ login.style.display="none";
+}
+
+function inventoryKey(){return "semka_inventory_"+playerName.toLowerCase();}
+function save(){
+  localStorage.setItem(key(),String(balance));
+  localStorage.setItem(inventoryKey(),JSON.stringify(inventory));
+}
+function loadInventory(){
+  try{
+    const saved=localStorage.getItem(inventoryKey());
+    inventory=saved?JSON.parse(saved):{};
+  }catch(e){
+    inventory={};
+  }
+  renderInventory();
+}
+function addToInventory(p){
+  inventory[p.name]=(inventory[p.name]||0)+1;
+  save();
+  renderInventory();
+}
+function sellItem(name){
+  const p=prizes.find(x=>x.name===name);
+  if(!p || !(inventory[name]>0)) return;
+  inventory[name]--;
+  balance+=p.price;
+  balanceEl.textContent=balance.toLocaleString("ru-RU");
+  save();
+  renderInventory();
+}
+function renderInventory(){
+  inventoryGrid.innerHTML="";
+  let total=0;
+  prizes.forEach(p=>{
+    const qty=Number(inventory[p.name]||0);
+    total+=qty;
+    if(qty>0){
+      const d=document.createElement("div");
+      d.className="inv-item";
+      d.innerHTML=`<img src="${p.image}" alt=""><div class="inv-info">
+        <div class="inv-name">${p.name}</div>
+        <div class="inv-rarity ${p.cls}">${p.rarity}</div>
+        <div class="inv-qty">×${qty}</div>
+        <button class="inv-sell" onclick="sellItem('${p.name.replace(/'/g, "\\'")}')">ПРОДАТЬ — <span class="gold-icon">G</span>${p.price.toLocaleString("ru-RU")} GOLD</button>
+      </div>`;
+      inventoryGrid.appendChild(d);
+    }
+  });
+  if(total===0){
+    inventoryGrid.innerHTML='<div class="empty-inventory">Инвентарь пока пуст. Открой кейс и получи первый предмет!</div>';
+  }
+  inventoryCount.textContent=`${total} ${total===1?"предмет":(total>=2&&total<=4?"предмета":"предметов")}`;
+}
+
+function makeItem(p){
+ const d=document.createElement("div");
+ d.className="item "+p.cls;
+ d.innerHTML=`<img class="seed-img" src="${p.image}" alt=""><div class="name">${p.name}</div><div class="rarity">${p.rarity}</div>`;
+ return d;
+}
+
+function randomPrize(){return prizes[Math.floor(Math.random()*prizes.length)];}
+
+function getWinner(){
+ const roll=Math.random()*100;
+ if(roll<64)return prizes[0];
+ if(roll<89)return prizes[1];
+ if(roll<96)return prizes[2];
+ if(roll<99)return Math.random()<2/3?prizes[3]:prizes[4];
+ return Math.random()<1/3?prizes[5]:prizes[6];
+}
+
+
+function adminKey(name){return "semka_balance_"+name.trim().toLowerCase();}
+function adminSetGold(name,amount){name=name.trim();amount=Number(amount);if(name.length<2||name.length>20||!Number.isFinite(amount)||amount<0)return "Проверь ник и количество GOLD.";amount=Math.floor(amount);localStorage.setItem(adminKey(name),String(amount));if(name.toLowerCase()===playerName.toLowerCase()){balance=amount;balanceEl.textContent=balance.toLocaleString("ru-RU");save();}return `${name}: 🪙 ${amount.toLocaleString("ru-RU")} GOLD`;}
+function adminAddGold(name,amount){name=name.trim();amount=Number(amount);if(name.length<2||name.length>20||!Number.isFinite(amount))return "Проверь ник и количество GOLD.";const k=adminKey(name),cur=Number(localStorage.getItem(k)??500),next=Math.max(0,Math.floor(cur+amount));localStorage.setItem(k,String(next));if(name.toLowerCase()===playerName.toLowerCase()){balance=next;balanceEl.textContent=balance.toLocaleString("ru-RU");save();}return `${name}: 🪙 ${next.toLocaleString("ru-RU")} GOLD`;}
+function setBan(name,banned){name=name.trim();if(name.length<2||name.length>20)return "Неверный ник.";localStorage.setItem("semka_banned_"+name.toLowerCase(),banned?"1":"0");if(name.toLowerCase()===playerName.toLowerCase()&&banned){alert("Этот аккаунт заблокирован администратором.");document.getElementById("logout").click();}return `${name}: ${banned?"ЗАБАНЕН":"РАЗБАНЕН"}`;}
+document.getElementById("addGold").onclick=()=>adminMsg.textContent=adminAddGold(adminTarget.value,adminAmount.value);
+document.getElementById("setGold").onclick=()=>adminMsg.textContent=adminSetGold(adminTarget.value,adminAmount.value);
+document.getElementById("banUser").onclick=()=>adminMsg.textContent=setBan(adminTarget.value,true);
+document.getElementById("unbanUser").onclick=()=>adminMsg.textContent=setBan(adminTarget.value,false);
+const adminTarget=document.getElementById("adminTarget"),adminAmount=document.getElementById("adminAmount"),adminMsg=document.getElementById("adminMsg");
+
+
+const fortuneBtn=document.getElementById("fortuneBtn");
+const fortuneWheel=document.getElementById("fortuneWheel");
+const fortuneCooldown=document.getElementById("fortuneCooldown");
+const fortuneWin=document.getElementById("fortuneWin");
+const FORTUNE_COOLDOWN=24*60*60*1000;
+let fortuneBusy=false;
+function fortuneKey(){return "semka_fortune_"+playerName.toLowerCase();}
+function updateFortune(){
+  if(!playerName)return;
+  const last=Number(localStorage.getItem(fortuneKey())||0);
+  const left=FORTUNE_COOLDOWN-(Date.now()-last);
+  if(left<=0){fortuneBtn.disabled=fortuneBusy;fortuneBtn.textContent="КРУТИТЬ КОЛЕСО";fortuneCooldown.textContent="Готово!";return;}
+  fortuneBtn.disabled=true;
+  const h=Math.floor(left/3600000),m=Math.floor((left%3600000)/60000),sec=Math.floor((left%60000)/1000);
+  fortuneBtn.textContent="КОЛЕСО НЕДОСТУПНО";
+  fortuneCooldown.textContent=`Следующая попытка через ${h}ч ${m}м ${sec}с`;
+}
+fortuneBtn.onclick=()=>{
+  if(fortuneBusy||Date.now()-Number(localStorage.getItem(fortuneKey())||0)<FORTUNE_COOLDOWN)return;
+  fortuneBusy=true; fortuneBtn.disabled=true; fortuneWin.textContent="";
+  const rewards=[100,250,500,750,1000,1500,2500,5000];
+  const winner=Math.floor(Math.random()*rewards.length);
+  const target=360*6+(360-(winner*45+22.5));
+  fortuneWheel.style.transform=`rotate(${target}deg)`;
+  setTimeout(()=>{
+    const reward=rewards[winner];
+    balance+=reward; balanceEl.textContent=balance.toLocaleString("ru-RU"); save();
+    localStorage.setItem(fortuneKey(),String(Date.now()));
+    fortuneWin.innerHTML=`🎉 Вы выиграли <span class="gold-icon">G</span>${reward.toLocaleString("ru-RU")} GOLD!`;
+    fortuneBusy=false; updateFortune();
+  },5100);
+};
+setInterval(updateFortune,1000);
+
+function fill(){
+ track.innerHTML="";
+ for(let i=0;i<45;i++)track.appendChild(makeItem(randomPrize()));
+}
+
+function showResult(p){
+ document.getElementById("resultVisual").innerHTML=`<img class="result-img" src="${p.image}" alt="">`;
+ document.getElementById("resultName").textContent=p.name;
+ document.getElementById("resultRarity").textContent=p.rarity.toUpperCase();
+ document.getElementById("resultPrice").textContent=p.price.toLocaleString("ru-RU");
+ result.classList.add("show");
+}
+
+loginBtn.onclick=()=>enter(nickname.value);
+nickname.addEventListener("keydown",e=>{if(e.key==="Enter")enter(nickname.value);});
+
+document.getElementById("logout").onclick=()=>{
+ localStorage.removeItem("semka_drop_player");
+ login.style.display="flex";
+ nickname.value="";
+};
+
+if(playerName){enter(playerName);loadInventory();}
+
+Object.entries(ADMIN_GOLD_USERS).forEach(([n,g])=>{const k="semka_balance_"+n;if(localStorage.getItem(k)===null)localStorage.setItem(k,String(g));});
+fill();
+
+btn.onclick=()=>{
+ if(busy||btn.disabled||balance<500)return;
+ busy=true;btn.disabled=true;result.classList.remove("show");
+ balance-=500;balanceEl.textContent=balance.toLocaleString("ru-RU");save();
+
+ fill();
+ const targetIndex=31;
+ const winner=getWinner();
+ track.replaceChild(makeItem(winner),track.children[targetIndex]);
+
+ const distance=targetIndex*126+(Math.random()*30-15);
+ track.style.transition="none";
+ track.style.transform="translateX(0)";
+ requestAnimationFrame(()=>{
+   track.style.transition="transform 5.2s cubic-bezier(.08,.72,.12,1)";
+   track.style.transform=`translateX(${-distance}px)`;
+ });
+
+ setTimeout(()=>{
+   addToInventory(winner);
+   showResult(winner);
+   btn.disabled=false;busy=false;
+ },5400);
+};
+
+// ===== ADMIN CONSOLE =====
+const consoleToggle=document.getElementById("consoleToggle");
+const consolePanel=document.getElementById("consolePanel");
+const consoleOutput=document.getElementById("consoleOutput");
+const consoleInput=document.getElementById("consoleInput");
+const consoleSend=document.getElementById("consoleSend");
+
+function isAdmin(){
+  return !!playerName && playerName.toLowerCase()===OWNER.toLowerCase();
+}
+function consoleLog(text,type=""){
+  const line=document.createElement("div");
+  line.className="console-line "+type;
+  line.textContent=text;
+  consoleOutput.appendChild(line);
+  consoleOutput.scrollTop=consoleOutput.scrollHeight;
+}
+function bannedKey(name){return "semka_banned_"+name.trim().toLowerCase();}
+function isBanned(name){return localStorage.getItem(bannedKey(name))==="1";}
+
+function showAdminUI(){
+  const ok=isAdmin();
+  consoleToggle.classList.toggle("show",ok);
+  if(!ok) consolePanel.classList.remove("show");
+}
+
+function consoleCommand(raw){
+  const text=raw.trim();
+  if(!text)return;
+  consoleLog("> "+text,"cmd");
+
+  if(!isAdmin()){
+    consoleLog("ОШИБКА: доступ только для владельца.","err");
+    return;
+  }
+
+  const parts=text.split(/\s+/);
+  const cmd=parts[0].toLowerCase().replace(/^\//,"");
+  const args=parts.slice(1);
+
+  if(cmd==="help"){
+    consoleLog(
+`Доступные команды:
+help                         — список команд
+gold                         — показать свою GOLD
+givegold <ник> <сумма>       — выдать GOLD игроку
+setgold <ник> <сумма>        — установить GOLD игроку
+ban <ник>                    — заблокировать игрока
+unban <ник>                  — снять бан
+bans                         — показать заблокированных
+clear                        — очистить консоль`,"ok");
+    return;
+  }
+
+  if(cmd==="clear"){
+    consoleOutput.innerHTML="";
+    return;
+  }
+
+  if(cmd==="gold"){
+    consoleLog(`Твоя GOLD: ${balance.toLocaleString("ru-RU")}`,"ok");
+    return;
+  }
+
+  if(cmd==="givegold" || cmd==="setgold"){
+    const name=args[0];
+    const amount=args[1];
+    if(!name || amount===undefined){
+      consoleLog(`Использование: ${cmd} <ник> <сумма>`,"err");
+      return;
+    }
+    const msg=cmd==="givegold" ? adminAddGold(name,amount) : adminSetGold(name,amount);
+    consoleLog(msg, msg.startsWith("Проверь") ? "err" : "ok");
+    return;
+  }
+
+  if(cmd==="ban" || cmd==="unban"){
+    const name=args[0];
+    if(!name){
+      consoleLog(`Использование: ${cmd} <ник>`,"err");
+      return;
+    }
+    if(name.toLowerCase()===OWNER.toLowerCase() && cmd==="ban"){
+      consoleLog("Нельзя забанить владельца.","err");
+      return;
+    }
+    consoleLog(setBan(name,cmd==="ban"),"ok");
+    return;
+  }
+
+  if(cmd==="bans"){
+    const result=[];
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k && k.startsWith("semka_banned_") && localStorage.getItem(k)==="1"){
+        result.push(k.replace("semka_banned_",""));
+      }
+    }
+    consoleLog(result.length ? "Заблокированы:\n- "+result.join("\n- ") : "Заблокированных игроков нет.","ok");
+    return;
+  }
+
+  consoleLog(`Неизвестная команда: ${cmd}. Напиши help.`,"err");
+}
+
+consoleToggle.onclick=()=>{
+  if(!isAdmin())return;
+  consolePanel.classList.toggle("show");
+  if(consolePanel.classList.contains("show")) consoleInput.focus();
+};
+consoleSend.onclick=()=>{
+  consoleCommand(consoleInput.value);
+  consoleInput.value="";
+  consoleInput.focus();
+};
+consoleInput.addEventListener("keydown",e=>{
+  if(e.key==="Enter"){
+    consoleCommand(consoleInput.value);
+    consoleInput.value="";
+  }
+});
+
+// Не даём забаненному игроку войти.
+const originalEnter=enter;
+enter=function(name){
+  name=name.trim();
+  if(name.length>=2 && name.length<=20 && isBanned(name)){
+    loginError.textContent="Этот аккаунт заблокирован администратором";
+    loginError.style.display="block";
+    return;
+  }
+  originalEnter(name);
+  showAdminUI();
+};
+
+// Обновляем видимость консоли после автологина.
+setTimeout(showAdminUI,0);
+
+</script>
+</body>
+</html>
